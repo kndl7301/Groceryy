@@ -317,7 +317,7 @@ if (process.env.NODE_ENV === 'production') {
 
   // For any other GET request that hasn't been handled by API routes or static files,
   // serve the index.html file (for single-page applications)
-  app.get('*', (req, res) => {
+  app.get('/*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend', 'build', 'index.html'));
   });
 }
