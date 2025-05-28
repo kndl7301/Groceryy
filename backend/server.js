@@ -312,9 +312,13 @@ app.post('/api/messages', async (req, res) => {
 
 // === Serve Frontend ===
 if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the 'frontend/build' directory
   app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+  // For any other GET request that hasn't been handled by API routes or static files,
+  // serve the index.html file (for single-page applications)
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+    res.sendFile(path.resolve(__dirname, '../frontend', 'build', 'index.html'));
   });
 }
 
