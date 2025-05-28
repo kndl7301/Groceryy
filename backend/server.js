@@ -2,23 +2,21 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const { Schema } = mongoose;
 const path = require('path');
-const app = express();
+const { Schema } = mongoose;
 require('dotenv').config();
 
+const app = express();
 
-// Middleware
+// === Middleware ===
 app.use(express.json());
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
+  credentials: true,
 }));
 
-// MongoDB Atlas connection
+// === MongoDB Connection ===
 const mongoURI = process.env.MONGO_URI;
-
-
 mongoose.connect(mongoURI)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => console.error('❌ MongoDB Error:', err));
@@ -29,6 +27,7 @@ const categorySchema = new Schema({
   image: { type: String, required: true },
   status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 });
+
 const productSchema = new Schema({
   name: { type: String, required: true },
   price: { type: Number, required: true },
@@ -36,20 +35,23 @@ const productSchema = new Schema({
   category: { type: String, required: true },
   stock: { type: Number, required: true },
 });
+
 const messageSchema = new Schema({
   username: String,
   email: String,
   message: String,
   date: { type: Date, default: Date.now }
 });
+
 const userSchema = new Schema({
   name: String,
   email: String,
   phone: String,
   address: String,
   password: String,
-  createdDate: { type: Date, default: Date.now }, // Kayıt tarihi
+  createdDate: { type: Date, default: Date.now },
 });
+
 const orderSchema = new Schema({
   orderid: { type: Number, required: true },
   username: { type: String, required: true },
@@ -88,7 +90,7 @@ app.post('/api/login', async (req, res) => {
         name: user.name,
         email: user.email,
         address: user.address,
-        phone: user.phone
+        phone: user.phone,
       }
     });
   } catch (err) {
@@ -126,11 +128,10 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
-
-
 app.post('/api/categories', async (req, res) => {
   const { category_name, image } = req.body;
-  if (!category_name || !image) return res.status(400).json({ message: 'Category name and image are required' });
+  if (!category_name || !image)
+    return res.status(400).json({ message: 'Category name and image are required' });
 
   try {
     const newCategory = new Category({ category_name, image });
@@ -201,19 +202,15 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-// backend: GET /api/products/lowstock
 app.get("/api/products/lowstock", async (req, res) => {
   try {
-    const products = await Product.find({ stock: { $lte: 10 } }); // ensure field name is `stock`
+    const products = await Product.find({ stock: { $lte: 10 } });
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: "Error fetching low stock products" });
   }
 });
 
-
-// ✅ Update stock
-// Express route örneği
 app.put('/api/products/:id/stock', async (req, res) => {
   const { id } = req.params;
   const { stock } = req.body;
@@ -242,7 +239,16 @@ app.post('/api/orders', async (req, res) => {
     return res.status(400).json({ message: 'All fields are required.' });
 
   try {
-    const newOrder = new Order({ orderid: orderId, username: userName, email, phone, orderdate: orderDate, orderamount: orderAmount, address, status });
+    const newOrder = new Order({
+      orderid: orderId,
+      username: userName,
+      email,
+      phone,
+      orderdate: orderDate,
+      orderamount: orderAmount,
+      address,
+      status
+    });
     await newOrder.save();
     res.json({ success: true, message: 'Order placed successfully' });
   } catch (err) {
@@ -302,7 +308,7 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-// === Serve frontend in production ===
+// === Serve Frontend ===
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
   app.get('*', (req, res) => {
@@ -310,6 +316,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+// === Start Server ===
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`🚀 Server running on port ${port}`);
